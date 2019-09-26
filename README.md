@@ -1,4 +1,4 @@
-# Pandoc Templates
+# pandoc-templates
 
 These are templates for pandoc. The pride and joy here is panling.lua, which is a lua filter that converts markdown to latex gb4e syntax in a fairly intuitive way.
 
