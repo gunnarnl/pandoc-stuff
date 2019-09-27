@@ -20,6 +20,8 @@ The syntax for this:
         1. <#sublabel1> This is a subexample.
         2. <#sublabel2> This is a second subexample.
 
+    References to examples can be made with <&label>.
+
 ## Templates
 .yaml files are metadata, header-\*.tex files are the header info for .tex/.pdf conversion.
 

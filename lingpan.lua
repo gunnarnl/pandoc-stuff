@@ -1,5 +1,5 @@
+-- Turns an element into a string, preserving math and footnote formatting for latex.
 function make_string(element)
-    --return pandoc.utils.stringify(element)
     return pandoc.utils.stringify(pandoc.walk_block(element, {
         -- We want to preserve formatting for math and notes, which will be obiliterated by stringify.
         Math = function(ele)
@@ -68,8 +68,11 @@ end
 -- Replace <&labels> with latex ref
 function Str(element)
     if string.match(element.text, "<%&(%w+)>") then
-        local label = string.match(element.text, "<%&(%w+)>")
-        return pandoc.RawInline("latex", "(\\ref{"..label.."})")
+        local label, punc = string.match(element.text, "<%&(%w+)>(%p*)")
+        if punc==nil then
+            punc = ""
+        end
+        return pandoc.RawInline("latex", "(\\ref{"..label.."})"..punc)
     else
         return element
     end

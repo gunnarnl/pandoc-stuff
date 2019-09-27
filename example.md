@@ -1,13 +1,13 @@
 ---
-    title: "This is a test"
+    title: "Example"
     date: 9-24-2019
 ---
 
-# This is a header that is part of the test
+# This example uses the handout files
 
-This is a test
+This is a sentence.
 
-It's a big test.
+This refers to <&label> below.
 
 ## This is also a header
 
@@ -22,3 +22,5 @@ And there can be paragraphs in between.
 (@) <#label3>
     1. <#sublabel1> This is a subexample.
     2. <#sublabel2> This is a second subexample.
+
+This refers to the sublabel in <&sublabel1>.
