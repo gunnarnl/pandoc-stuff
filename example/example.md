@@ -11,7 +11,7 @@ This refers to <&label> below.
 
 ## This is also a header
 
-(@) <#label> This is an example
+(@) <#label> This is an **example**
 
 And there can be paragraphs in between.
 

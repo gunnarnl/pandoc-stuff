@@ -1,6 +1,6 @@
 ---
 author: "Gunnar Lund"
-bibliography: zotero.bib
+bibliography: ~/Projects/pandoc-templates/bibliography.bib
 
 fontsize: 11pt
 geometry: margin=1in

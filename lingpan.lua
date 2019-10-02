@@ -1,12 +1,22 @@
 -- Turns an element into a string, preserving math and footnote formatting for latex.
+--      TO DO: need to make sure that small caps work. Also need to check on elements in elements. Probably will need a recursive rule.
 function make_string(element)
     return pandoc.utils.stringify(pandoc.walk_block(element, {
-        -- We want to preserve formatting for math and notes, which will be obiliterated by stringify.
+        -- We want to preserve formatting for math, bf, notes, which will be obiliterated by stringify.
         Math = function(ele)
             return pandoc.Str("$"..ele.text.."$")
         end,
         Note = function(ele)
-            return pandoc.Str("\\footnote{"..ele.text.."}")
+            return pandoc.Str("\\footnote{"..pandoc.utils.stringify(ele.content).."}")
+        end,
+        Strong = function(ele)
+            return pandoc.Str("\\textbf{"..pandoc.utils.stringify(ele.content).."}")
+        end,
+        Emph = function(ele)
+            return pandoc.Str("\\textit{"..pandoc.utils.stringify(ele.content).."}")
+        end,
+        SmallCaps = function(ele)
+            return pandoc.Str("\\textsc{"..pandoc.utils.stringify(ele.content).."}")
         end
     }))
 end
