@@ -1,24 +1,77 @@
 -- Turns an element into a string, preserving math and footnote formatting for latex.
---      TO DO: need to make sure that small caps work. Also need to check on elements in elements. Probably will need a recursive rule.
-function make_string(element)
-    return pandoc.utils.stringify(pandoc.walk_block(element, {
-        -- We want to preserve formatting for math, bf, notes, which will be obiliterated by stringify.
-        Math = function(ele)
-            return pandoc.Str("$"..ele.text.."$")
-        end,
-        Note = function(ele)
-            return pandoc.Str("\\footnote{"..pandoc.utils.stringify(ele.content).."}")
-        end,
-        Strong = function(ele)
-            return pandoc.Str("\\textbf{"..pandoc.utils.stringify(ele.content).."}")
-        end,
-        Emph = function(ele)
-            return pandoc.Str("\\textit{"..pandoc.utils.stringify(ele.content).."}")
-        end,
-        SmallCaps = function(ele)
-            return pandoc.Str("\\textsc{"..pandoc.utils.stringify(ele.content).."}")
+-- TO DO: glossing rules
+
+function make_string(inlines)
+    local buffer = ""
+    for i, inline in ipairs(inlines) do
+        buffer = buffer..to_tex(inline)
+    end
+    return buffer
+end
+
+-- Converts pandoc elements into relevant tex
+function to_tex(inline)
+    if inline.t == "Str" then
+        if inline.text=="¶" then
+            return "\\newline"
+        else
+            return pandoc.utils.stringify(inline)
         end
-    }))
+    elseif inline.t == "Math" then
+        return "$"..inline.text.."$"
+    elseif inline.t == "Note" then
+        local ncon = pandoc.utils.blocks_to_inlines(inline.content)
+        local buffer = ""
+        for _, i in ipairs(inline.content) do
+            buffer = buffer..to_tex(i)
+        end
+        return "\\footnote{"..buffer.."}"
+    elseif inline.t == "Strong" then
+        local buffer = ""
+        for _, i in ipairs(inline.content) do
+            buffer = buffer..to_tex(i)
+        end
+        return "\\textbf{"..buffer.."}"
+    elseif inline.t == "Emph" then
+        local buffer = ""
+        for _, i in ipairs(inline.content) do
+            buffer = buffer..to_tex(i)
+        end
+        return "\\textit{"..buffer.."}"
+    elseif inline.t == "Strikeout" then
+        local buffer = ""
+        for _, i in ipairs(inline.content) do
+            buffer = buffer..to_tex(i)
+        end
+        return "\\sout{"..buffer.."}"
+    elseif inline.t == "SmallCaps" then
+        local buffer = ""
+        for _, i in ipairs(inline.content) do
+            buffer = buffer..to_tex(i)
+        end
+        return "\\textsc{"..buffer.."}"
+    elseif inline.t == "Quoted" then
+        local buffer = ""
+        for _, i in ipairs(inline.content) do
+            buffer = buffer..to_tex(i)
+        end
+        if inline.quotetype == "SingleQuote" then
+            return "'"..buffer.."'"
+        else
+            return '"'..buffer..'"'
+        end
+    elseif inline.t == "RawInline" then
+        return inline.text
+    elseif inline.t == "Space" then
+        return " "
+    elseif inline.t == "LineBreak" then
+        return "\\\\"
+    elseif inline.t == "SoftBreak" then
+        return "\n"
+    else
+        print("Error in to_tex: "..inline.t)
+        return "ERROR"
+    end
 end
 
 function make_example(element)
@@ -26,6 +79,7 @@ function make_example(element)
     local label, cont = string.match(make_string(element), "<#(%w+)>(.*)$")
     if label then
         -- Assigns /ex tag and label
+        local gloss = string.match(make_string(cont), "^\\gll ")
         return "\\ex\\label{" ..label.."}"..cont.."\n"
     else
         -- If element has no label, it groups with the upstairs element.
@@ -34,42 +88,42 @@ function make_example(element)
 end
 
 -- This flattens embedded lists into xlists.
-function flattenembed(element)
+-- There should be a way to define this recursively, but I don't understand the data structures well enough.
+-- E.g. every OrderedList could be turned into a list of elements butressed by raw "begin" and "end" latex code.
+function create_xlist(element)
     return pandoc.walk_block(element, {
         OrderedList = function(ele)
             if ele.style ~= "Example" then
                 local embex = ""
-                pandoc.walk_block(ele, {
-                    Block = function(ele)
-                        embex = embex..make_example(ele)
-                    end
-                })
+                for _, item in pairs(ele.content) do
+                    embex = embex..filter_blocks(item)
+                end
                 embex = "\\begin{xlist}\n"..embex.."\\end{xlist}"
                 -- no idea why Plain works here and RawBlock doesn't
                 return pandoc.Plain(embex)
+            else
+                return ele
             end
         end
     })
+end
+
+function filter_blocks(item)
+    inlines = pandoc.utils.blocks_to_inlines(item)
+    return make_example(inlines)
 end
 
 -- replace <#numberedexample> with latex label
 function OrderedList(element)
     if element.style == "Example" then
         local example = ""
-        --This will turn embedded lists into sublists for gb4e. This should be generalized.
-        if element.t == "OrderedList" then
-            element = flattenembed(element)
+        -- Turn 2nd level lists into xlists
+        element = create_xlist(element)
+        for _, item in pairs(element.content) do
+            example = example..filter_blocks(item)
         end
-        --This will flatten everything into a single string.
-        pandoc.walk_block(element, {
-            Block = function(ele)
-                if ele.t ~= "OrderedList" then
-                    example = example..make_example(ele)
-                end
-            end
-        })
-        -- Returns the flattened gb4e example.
         if example ~= "" then
+            example = string.gsub(example, "(\\label{%w+}) \\newline", "%1")
             return pandoc.RawBlock("latex", "\\begin{exe}\n"..example.."\\end{exe}")
         end
     end

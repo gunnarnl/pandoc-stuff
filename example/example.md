@@ -1,6 +1,6 @@
 ---
     title: "Example"
-    date: 9-24-2019
+    date: 10/09/2019
 ---
 
 # This example uses the handout files
@@ -11,7 +11,7 @@ This refers to <&label> below.
 
 ## This is also a header
 
-(@) <#label> This is an **example**
+(@) <#label> This is an **example and it contains *emphasis*.**
 
 And there can be paragraphs in between.
 
@@ -21,6 +21,10 @@ And there can be paragraphs in between.
 
 (@) <#label3>
     1. <#sublabel1> This is a subexample.
-    2. <#sublabel2> This is a second subexample.
+    2. <#sublabel2> This is a second subexample with [small caps]{.smallcaps} and ~~strikeout~~.
 
-This refers to the sublabel in <&sublabel1>.
+This refers to the sublabel in <&sublabel1>. Glossing works as well, as in <&gloss>.
+
+(@) <#gloss> \gll C'est un exemple.\\\\
+\textsc{dem+cop} an example\\\\
+"This is an example."

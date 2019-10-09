@@ -4,7 +4,9 @@ These are templates for pandoc. The pride and joy here is panling.lua, which is 
 
 ## panling.lua
 
-This will convert md-ish syntax into gb4e syntax for latex. It currently allows for one layer of embedding. I don't really know lua at all nor pandoc's lua support, so I'm sure there's a way to generalize to multiple embeddings. Inline math (should) work as normal.
+This will convert md-ish syntax into gb4e syntax for latex. It currently allows for one layer of embedding. I don't really know lua at all nor the data structures pandoc uses, so I'm sure there's a way to generalize to multiple embeddings. Inline math and other stylistic elements (should) work as normal.
+
+Glosses also work mostly as normal. Begin a gloss with \gll and use four (4) backslashes to delimit lines.
 
 The syntax for this:
 
@@ -21,6 +23,11 @@ The syntax for this:
         2. <#sublabel2> This is a second subexample.
 
     References to examples can be made with <&label>.
+
+    Glossing is mostly familiar (notice: \\\\ instead of \\)
+    (@) <#gloss> \gll C'est un exemple.\\\\
+    \textsc{dem+cop} an example\\\\
+    "This is an example."
 
 ## Templates
 .yaml files are metadata, header-\*.tex files are the header info for .tex/.pdf conversion.
