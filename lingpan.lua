@@ -68,6 +68,18 @@ function to_tex(inline)
         return "\\\\"
     elseif inline.t == "SoftBreak" then
         return "\n"
+    elseif inline.t == "Subscript" then
+        local buffer = ""
+        for _, i in ipairs(inline.content) do
+            buffer = buffer..to_tex(i)
+        end
+        return "$_{\\text{"..buffer.."}}$"
+    elseif inline.t == "Superscript" then
+        local buffer = ""
+        for _, i in ipairs(inline.content) do
+            buffer = buffer..to_tex(i)
+        end
+        return "$^{\\text{"..buffer.."}}$"
     else
         print("Error in to_tex: "..inline.t)
         return "ERROR"
@@ -140,4 +152,14 @@ function Str(element)
     else
         return element
     end
+end
+
+-- Puts my comments in the gnl tag.
+-- NOTE: the logic here is what should be used to make the recursive rule for examples. 
+function Span(element)
+    if element.classes[1] == "gnl" then
+        table.insert(element.content, 1, pandoc.RawInline('latex', '\\gnl{'))
+        table.insert(element.content, pandoc.RawInline('latex', '}'))
+    end
+    return element
 end
