@@ -1,6 +1,6 @@
 ---
     title: "Example"
-    date: 10/09/2019
+    date: 10/22/2019
 ---
 
 # This example uses the handout files
@@ -25,6 +25,6 @@ And there can be paragraphs in between.
 
 This refers to the sublabel in <&sublabel1>. Glossing works as well, as in <&gloss>.
 
-(@) <#gloss> \gll C'est un exemple.\\\\
-\textsc{dem+cop} an example\\\\
+(@) <#gloss>=gll C'est un exemple.
+\textsc{dem+cop} an example
 "This is an example."

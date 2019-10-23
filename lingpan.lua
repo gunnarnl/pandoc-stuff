@@ -1,147 +1,72 @@
--- Turns an element into a string, preserving math and footnote formatting for latex.
--- TO DO: glossing rules
-
-function make_string(inlines)
-    local buffer = ""
-    for i, inline in ipairs(inlines) do
-        buffer = buffer..to_tex(inline)
-    end
-    return buffer
-end
-
--- Converts pandoc elements into relevant tex
-function to_tex(inline)
-    if inline.t == "Str" then
-        if inline.text=="¶" then
-            return "\\newline"
-        else
-            return pandoc.utils.stringify(inline)
-        end
-    elseif inline.t == "Math" then
-        return "$"..inline.text.."$"
-    elseif inline.t == "Note" then
-        local ncon = pandoc.utils.blocks_to_inlines(inline.content)
-        local buffer = ""
-        for _, i in ipairs(inline.content) do
-            buffer = buffer..to_tex(i)
-        end
-        return "\\footnote{"..buffer.."}"
-    elseif inline.t == "Strong" then
-        local buffer = ""
-        for _, i in ipairs(inline.content) do
-            buffer = buffer..to_tex(i)
-        end
-        return "\\textbf{"..buffer.."}"
-    elseif inline.t == "Emph" then
-        local buffer = ""
-        for _, i in ipairs(inline.content) do
-            buffer = buffer..to_tex(i)
-        end
-        return "\\textit{"..buffer.."}"
-    elseif inline.t == "Strikeout" then
-        local buffer = ""
-        for _, i in ipairs(inline.content) do
-            buffer = buffer..to_tex(i)
-        end
-        return "\\sout{"..buffer.."}"
-    elseif inline.t == "SmallCaps" then
-        local buffer = ""
-        for _, i in ipairs(inline.content) do
-            buffer = buffer..to_tex(i)
-        end
-        return "\\textsc{"..buffer.."}"
-    elseif inline.t == "Quoted" then
-        local buffer = ""
-        for _, i in ipairs(inline.content) do
-            buffer = buffer..to_tex(i)
-        end
-        if inline.quotetype == "SingleQuote" then
-            return "'"..buffer.."'"
-        else
-            return '"'..buffer..'"'
-        end
-    elseif inline.t == "RawInline" then
-        return inline.text
-    elseif inline.t == "Space" then
-        return " "
-    elseif inline.t == "LineBreak" then
-        return "\\\\"
-    elseif inline.t == "SoftBreak" then
-        return "\n"
-    elseif inline.t == "Subscript" then
-        local buffer = ""
-        for _, i in ipairs(inline.content) do
-            buffer = buffer..to_tex(i)
-        end
-        return "$_{\\text{"..buffer.."}}$"
-    elseif inline.t == "Superscript" then
-        local buffer = ""
-        for _, i in ipairs(inline.content) do
-            buffer = buffer..to_tex(i)
-        end
-        return "$^{\\text{"..buffer.."}}$"
-    else
-        print("Error in to_tex: "..inline.t)
-        return "ERROR"
-    end
-end
-
-function make_example(element)
-    -- Gets label and content, if no label, then the else condition applies below.
-    local label, cont = string.match(make_string(element), "<#(%w+)>(.*)$")
-    if label then
-        -- Assigns /ex tag and label
-        local gloss = string.match(make_string(cont), "^\\gll ")
-        return "\\ex\\label{" ..label.."}"..cont.."\n"
-    else
-        -- If element has no label, it groups with the upstairs element.
-        return "\n"..make_string(element).."\n"
-    end
-end
-
--- This flattens embedded lists into xlists.
--- There should be a way to define this recursively, but I don't understand the data structures well enough.
--- E.g. every OrderedList could be turned into a list of elements butressed by raw "begin" and "end" latex code.
-function create_xlist(element)
+-- Creates xlist syntax for subexamples; similar logic as in the main function below.
+function create_xlists(element)
     return pandoc.walk_block(element, {
         OrderedList = function(ele)
             if ele.style ~= "Example" then
-                local embex = ""
-                for _, item in pairs(ele.content) do
-                    embex = embex..filter_blocks(item)
-                end
-                embex = "\\begin{xlist}\n"..embex.."\\end{xlist}"
-                -- no idea why Plain works here and RawBlock doesn't
-                return pandoc.Plain(embex)
-            else
-                return ele
+                local result = insert_ex(ele, "xlist")
+                table.insert(result, 1, pandoc.RawBlock("latex", "\\begin{xlist}"))
+                table.insert(result, pandoc.RawBlock("latex", "\\end{xlist}"))
+                return pandoc.Div(result)
             end
         end
     })
 end
 
-function filter_blocks(item)
-    inlines = pandoc.utils.blocks_to_inlines(item)
-    return make_example(inlines)
-end
-
--- replace <#numberedexample> with latex label
-function OrderedList(element)
-    if element.style == "Example" then
-        local example = ""
-        -- Turn 2nd level lists into xlists
-        element = create_xlist(element)
-        for _, item in pairs(element.content) do
-            example = example..filter_blocks(item)
+-- Get labels and add glossing support when tag has =gll.
+function get_label(element)
+    label, gl = string.match(pandoc.utils.stringify(element), "^<#(%w+)>([=gll]*)")
+    if gl ~= "" then
+        local buffer = {}
+        for _, block in pairs(element) do
+            table.insert(block.content, 1, pandoc.RawInline("latex", "\\gll"))
+            block = pandoc.walk_block(block, {
+                SoftBreak = function(ele)
+                    return pandoc.RawInline("latex","\\\\\n")
+                end
+            })
+            table.insert(buffer, block)
         end
-        if example ~= "" then
-            example = string.gsub(example, "(\\label{%w+}) \\newline", "%1")
-            return pandoc.RawBlock("latex", "\\begin{exe}\n"..example.."\\end{exe}")
-        end
+        return buffer, label
+    else
+        return element, label
     end
 end
 
--- Replace <&labels> with latex ref
+-- Replace OrderedLists with gb4e syntax.
+function OrderedList(element)
+    if element.style == "Example" then
+        element = create_xlists(element)
+        local result = insert_ex(element, "exe")
+        table.insert(result, 1, pandoc.RawBlock("latex", "\\begin{exe}"))
+        table.insert(result, pandoc.RawBlock("latex", "\\end{exe}"))
+        return pandoc.Div(result)
+    end
+end
+
+-- Takes list items and inserts \ex\label{}.
+function insert_ex(element, labeltype)
+    local result = {}
+    for _, li in pairs(element.content) do
+        li, label = get_label(li)
+        table.insert(li[1].content, 1, pandoc.RawInline("latex", "\\ex\\label{"..label.."}"))
+        for _, block in pairs(li) do
+            -- Removes labels
+            block = pandoc.walk_block(block, {
+                Str = function(ele)
+                    if string.match(ele.text, "^<#(%w+)>([=gll]*)") then
+                        return pandoc.SoftBreak()
+                    else
+                        return ele
+                    end
+                end
+            })
+            table.insert(result, block)
+        end
+    end
+    return result
+end
+
+-- Replace <&labels> with latex /ref{}
 function Str(element)
     if string.match(element.text, "<%&(%w+)>") then
         local label, punc = string.match(element.text, "<%&(%w+)>(%p*)")
@@ -155,7 +80,6 @@ function Str(element)
 end
 
 -- Puts my comments in the gnl tag.
--- NOTE: the logic here is what should be used to make the recursive rule for examples. 
 function Span(element)
     if element.classes[1] == "gnl" then
         table.insert(element.content, 1, pandoc.RawInline('latex', '\\gnl{'))
