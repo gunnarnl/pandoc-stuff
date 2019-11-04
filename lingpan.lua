@@ -78,12 +78,3 @@ function Str(element)
         return element
     end
 end
-
--- Puts my comments in the gnl tag.
-function Span(element)
-    if element.classes[1] == "gnl" then
-        table.insert(element.content, 1, pandoc.RawInline('latex', '\\gnl{'))
-        table.insert(element.content, pandoc.RawInline('latex', '}'))
-    end
-    return element
-end
