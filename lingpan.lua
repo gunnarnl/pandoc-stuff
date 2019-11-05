@@ -26,9 +26,9 @@ function get_label(element)
             })
             table.insert(buffer, block)
         end
-        return buffer, label
+        return label, buffer
     else
-        return element, label
+        return label, element
     end
 end
 
@@ -47,13 +47,13 @@ end
 function insert_ex(element, labeltype)
     local result = {}
     for _, li in pairs(element.content) do
-        li, label = get_label(li)
+        local label, li = get_label(li)
         table.insert(li[1].content, 1, pandoc.RawInline("latex", "\\ex\\label{"..label.."}"))
         for _, block in pairs(li) do
             -- Removes labels
             block = pandoc.walk_block(block, {
                 Str = function(ele)
-                    if string.match(ele.text, "^<#(%w+)>([=gll]*)") then
+                    if string.match(ele.text, "^<#([%w-]+)>([=gll]*)") then
                         return pandoc.SoftBreak()
                     else
                         return ele
