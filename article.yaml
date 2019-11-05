@@ -3,9 +3,10 @@ author: "Gunnar Lund"
 bibliography: /home/gunnar/Projects/pandoc-templates/bibliography.bib
 csl: /home/gunnar/Projects/pandoc-templates/ussfl.csl
 
-fontsize: 11pt
+fontsize: 12pt
 geometry: margin=1in
 fontfamily: mathpazo
-indent: false
+indent: true
 numbersections: true
+linestretch: 1.5
 ---
