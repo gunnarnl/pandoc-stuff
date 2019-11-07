@@ -40,6 +40,20 @@ Articles:
 + article.yaml
 + header-article.tex
 
-## Typical usage
+## pancomp
+
+BASH script for using quickly creating pdfs using filters and templates.
+
+    pancomp [options] filetoconvert.md
+
+Options:
+
+-a: Use article header and yaml files.
+
+-o [FILENAME]: use specified filename (don't include extension)
+
+-t [.EXT]: use specified extension (include .!)  
+
+## Typical usage otherwise
 
     pandoc metadata.yaml src.md -o src.pdf -H header.tex --lua-filter=panling.lua
