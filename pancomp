@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# pancomp - Runs pandoc for a given markdown file with the relevant parameters.
+#
+# pancomp [options] [arguments]
+
+# Initialize all the option variables.
+# This ensures we are not contaminated by variables from the environment.
+oformat=
+ofile=
+otype=
+
+#check options
+while :; do
+    case $1 in
+        -a)
+            oformat=article
+            ;;
+        -o)
+            if [ "$2" ]; then
+                ofile=$2
+                shift
+            else
+                echo 'ERROR: "-o" requires a non-empty option argument (a file name w.o. extension).'
+            fi
+            ;;
+        -t)
+            if [ "$2" ]; then
+                otype=$2
+                shift
+            else
+                echo 'ERROR: "-t" requires a non-empty option argument (a file extension).'
+            fi
+            ;;
+        -h)
+            echo 'This is pancomp. Options: -a: use article yaml and TeX header. -o FILENAME: use custom filename. -t FILEEXTENSION: use custom file extension.'
+            exit
+            ;;
+        *)
+            break
+            ;;
+    esac
+
+    shift
+done
+
+ifile=${1%.*}
+
+pandoc ~/Projects/pandoc-templates/${oformat:-handout}.yaml $1 -o ${ofile:-$ifile}${otype:-.pdf} -H ~/Projects/pandoc-templates/${oformat:-handout}-header.tex --filter pandoc-citeproc --lua-filter ~/Projects/pandoc-templates/lingpan.lua --lua-filter ~/Projects/pandoc-templates/gnl.lua
