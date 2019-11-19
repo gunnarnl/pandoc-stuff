@@ -9,5 +9,5 @@ geometry: margin=1.0in
 fontfamily: mathpazo
 indent: true
 numbersections: true
-linestretch: 1.5
+linestretch: 1
 ---
