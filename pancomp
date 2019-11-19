@@ -35,7 +35,7 @@ while :; do
         -h)
             echo 'This is pancomp. Options: -a: use article yaml and TeX header. -o FILENAME: use custom filename. -t FILEEXTENSION: use custom file extension.'
             exit
-            ;;
+	    ;;
         *)
             break
             ;;
