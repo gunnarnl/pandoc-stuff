@@ -16,6 +16,9 @@ while :; do
         -a)
             oformat=article
             ;;
+        -c)
+            oformat=confabstract
+            ;;
         -o)
             if [ "$2" ]; then
                 ofile=$2
