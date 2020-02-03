@@ -5,9 +5,13 @@ csl: /home/gunnar/Projects/pandoc-templates/ussfl.csl
 reference-section-title: References
 
 fontsize: 12pt
-geometry: margin=1.0in
+#geometry: margin=1.25in
+margin-left: 1.25in
+margin-right: 1.25in
+margin-top: 1in
+margin-bottom: 1in
 fontfamily: mathpazo
 indent: true
 numbersections: true
-linestretch: 1
+linestretch: 1.5
 ---
