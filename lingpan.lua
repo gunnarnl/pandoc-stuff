@@ -14,7 +14,7 @@ end
 
 -- Get labels and add glossing support when tag has =gll.
 function get_label(element)
-    label, gl = string.match(pandoc.utils.stringify(element), "^<#(%w+)>([=gll]*)")
+    label, gl = string.match(pandoc.utils.stringify(element), "^<#([%s%w%-:]+)>([=gll]*)")
     if gl ~= "" then
         local buffer = {}
         for _, block in pairs(element) do
@@ -53,7 +53,7 @@ function insert_ex(element, labeltype)
             -- Removes labels
             block = pandoc.walk_block(block, {
                 Str = function(ele)
-                    if string.match(ele.text, "^<#([%w-]+)>([=gll]*)") then
+                    if string.match(ele.text, "^<#([%s%w%-:]+)>([=gll]*)") then
                         return pandoc.SoftBreak()
                     else
                         return ele
@@ -68,8 +68,8 @@ end
 
 -- Replace <&labels> with latex /ref{}
 function Str(element)
-    if string.match(element.text, "<%&(%w+)>") then
-        local label, punc = string.match(element.text, "<%&(%w+)>(%p*)")
+    if string.match(element.text, "<%&([%s%w%-:]+)>") then
+        local label, punc = string.match(element.text, "<%&([%s%w%-:]+)>(%p*)")
         if punc==nil then
             punc = ""
         end
