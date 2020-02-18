@@ -1,0 +1,12 @@
+---
+bibliography: /home/gunnar/Projects/pandoc-templates/bibliography.bib
+csl: /home/gunnar/Projects/pandoc-templates/ussfl.csl
+reference-section-title: References
+
+fontsize: 12pt
+geometry: margin=1.0in
+fontfamily: mathpazo
+indent: true
+numbersections: false
+linestretch: 1
+---
