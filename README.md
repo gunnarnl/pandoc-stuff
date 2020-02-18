@@ -1,6 +1,6 @@
 # pandoc-templates
 
-These are templates for pandoc. The pride and joy here is panling.lua, which is a lua filter that converts markdown to latex gb4e syntax in a fairly intuitive way.
+My personal templates and lua filters for pandoc. The pride and joy here is panling.lua, which is a lua filter that converts markdown to latex gb4e syntax in a fairly intuitive way.
 
 ## panling.lua
 
@@ -28,6 +28,16 @@ The syntax for this:
     (@) <#gloss>=gll C'est un exemple.
     \textsc{dem+cop} an example
     "This is an example."
+
+## includeex.lua
+
+Inserts interlinear glosses from an external file formatted in JSON, where *ref* is a unique identifier for the gloss. Requires lunajson module for lua5.3.
+
+Syntax:
+
+    [!ref](file.json){attributes}
+
+This is included in the examples. Also look there for a sample JSON file.
 
 ## Templates
 .yaml files are metadata, header-\*.tex files are the header info for .tex/.pdf conversion.
