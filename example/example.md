@@ -1,6 +1,6 @@
 ---
     title: "Example"
-    date: 10/22/2019
+    date: 2/18/20
 ---
 
 # This example uses the handout files
@@ -28,3 +28,15 @@ This refers to the sublabel in <&sublabel1>. Glossing works as well, as in <&glo
 (@) <#gloss>=gll C'est un exemple.
 \textsc{dem+cop} an example
 "This is an example."
+
+Or with an inserted example (with includeex.lua). By default, the context will appear if present. If the gloss contains both a text and morphemic breakdown, the text won't appear unless specified in the attributes. Also notice that "=gll" shouldn't be appended to the example reference.
+
+(@) <#gloss2> [!id](glossing.json)
+
+With attributes suppressText=false and suppressContext=true:
+
+(@) <#gloss2> [!id](glossing.json){suppressText=false suppressContext=true}
+
+Notice also that examples with only text, gloss, and translation work as expected.
+
+(@) <#gloss3> [!id2](glossing.json)
