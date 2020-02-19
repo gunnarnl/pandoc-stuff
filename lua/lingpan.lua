@@ -48,6 +48,7 @@ function insert_ex(element, labeltype)
     local result = {}
     for _, li in pairs(element.content) do
         local label, li = get_label(li)
+        --print(label)
         table.insert(li[1].content, 1, pandoc.RawInline("latex", "\\ex\\label{"..label.."}"))
         for _, block in pairs(li) do
             -- Removes labels
