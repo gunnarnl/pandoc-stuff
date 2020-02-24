@@ -1,3 +1,4 @@
 *.bib
 *.csl
 handouts/*.tex
+example/*.tex

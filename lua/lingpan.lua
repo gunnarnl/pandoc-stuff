@@ -12,6 +12,40 @@ function create_xlists(element)
     })
 end
 
+-- Get gb4e ready glosses.
+-- TODO: make newlines work in translations!
+function Span(element)
+    if element.classes[2] == "wilg" then
+        local tags = {}
+        for k, span in pairs(element.content) do
+            if span.classes[1] == 'ilg' and span.classes[2]~='trans' then
+                tags[span.classes[2]] = span.content[1]
+            elseif span.classes[1]=='ilg' and span.classes[2]=='trans' then
+                tags[span.classes[2]] = pandoc.Str(pandoc.utils.stringify(span.content))
+            else
+            end
+        end
+        local ilgLatex = {}
+        if pandoc.utils.stringify(tags['context']) ~= '' then
+            table.insert(ilgLatex, tags['context'])
+            if pandoc.utils.stringify(tags['text']) ~= '' then
+                table.insert(ilgLatex, pandoc.RawInline("latex","\\\\\n"))
+            end
+        end
+        if pandoc.utils.stringify(tags['text']) ~= '' then
+            table.insert(ilgLatex, tags['text'])
+        end
+        table.insert(ilgLatex, pandoc.RawInline("latex","\\gll "))
+        table.insert(ilgLatex, tags['morph'])
+        table.insert(ilgLatex, pandoc.RawInline("latex","\\\\\n"))
+        table.insert(ilgLatex, tags['gloss'])
+        table.insert(ilgLatex, pandoc.RawInline("latex","\\\\\n"))
+        table.insert(ilgLatex, pandoc.RawInline("latex","\\trans "))
+        table.insert(ilgLatex, tags['trans'])
+        return ilgLatex
+    end
+end
+
 -- Get labels and add glossing support when tag has =gll.
 function get_label(element)
     label, gl = string.match(pandoc.utils.stringify(element), "^<#([%s%w%-:]+)>([=gll]*)")
