@@ -1,4 +1,6 @@
 -- Creates xlist syntax for subexamples; similar logic as in the main function below.
+-- TODO: This whole thing should be rewritten...
+
 function create_xlists(element)
     return pandoc.walk_block(element, {
         OrderedList = function(ele)
@@ -82,8 +84,10 @@ function insert_ex(element, labeltype)
     local result = {}
     for _, li in pairs(element.content) do
         local label, li = get_label(li)
-        --print(label)
-        table.insert(li[1].content, 1, pandoc.RawInline("latex", "\\ex\\label{"..label.."}"))
+        --table.insert(li[1].content, 1, pandoc.RawInline("latex", "\\ex\\label{"..label.."}"))
+        local judgment = ""
+        table.insert(li[1].content, 1, pandoc.RawInline("latex", "\\ex["..judgment.."]{"))
+        table.insert(li[1].content, pandoc.RawInline("latex", "}\\label{"..label.."}"))
         for _, block in pairs(li) do
             -- Removes labels
             block = pandoc.walk_block(block, {

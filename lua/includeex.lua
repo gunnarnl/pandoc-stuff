@@ -26,6 +26,7 @@ function Link(element)
             if sent.ref == refID then
                 local context = pandoc.Span({pandoc.Str("")}, pandoc.Attr(sent.ref.."context", {'ilg', 'context'}))
                 local text = pandoc.Span({pandoc.Str("")}, pandoc.Attr(sent.ref.."text", {'ilg', 'text'}))
+                local judgment = pandoc.Span({pandoc.Str("")}, pandoc.Attr(sent.ref.."judgment", {'ilg', 'judgement'}))
                 if sent.context ~= nil and suppressContext==false then
                     context = pandoc.Span({pandoc.Str(sent.context), pandoc.SoftBreak()}, pandoc.Attr(sent.ref.."context", {'ilg', 'context'}))
                     --table.insert(ilg, context)
@@ -41,8 +42,12 @@ function Link(element)
                         morph = pandoc.Span({pandoc.Str(sent.text), pandoc.SoftBreak()}, pandoc.Attr(sent.ref.."morph", {'ilg', 'morph'}))
                     end
                 end
+                if sent.judgment ~= nil then
+                    judgment = pandoc.Span({pandoc.Str(sent.judgment)}, pandoc.Attr(sent.ref.."judgment", {'ilg', 'judgement'}))
+                end 
                 gloss = pandoc.Span({pandoc.Str(table.concat(sent.gloss, " ")), pandoc.SoftBreak()}, pandoc.Attr(sent.ref.."gloss", {'ilg', 'gloss'}))
                 table.insert(ilg, context)
+                table.insert(ilg, judgment)
                 table.insert(ilg, text)
                 table.insert(ilg, morph)
                 table.insert(ilg, gloss)
