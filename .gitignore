@@ -2,3 +2,4 @@
 *.csl
 handouts/*.tex
 example/*.tex
+*.native

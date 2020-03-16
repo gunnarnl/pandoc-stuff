@@ -1,6 +1,6 @@
 ---
     title: "Example"
-    date: 2/18/20
+    date: 3/16/20
 ---
 
 # This example uses the handout files
@@ -25,11 +25,11 @@ And there can be paragraphs in between.
 
 This refers to the sublabel in <&sublabel1>. Glossing works as well, as in <&gloss>.
 
-(@) <#gloss>=gll C'est un exemple.
+(@) <g#gloss> C'est un exemple.
 \textsc{dem+cop} an example
 "This is an example."
 
-Or with an inserted example (with includeex.lua). By default, the context will appear if present. If the gloss contains both a text and morphemic breakdown, the text won't appear unless specified in the attributes. Also notice that "=gll" shouldn't be appended to the example reference.
+Or with an inserted example (with includeex.lua). By default, the context will appear if present. If the gloss contains both a text and morphemic breakdown, the text won't appear unless specified in the attributes. Also notice that "g" shouldn't be appended to the example reference.
 
 (@) <#gloss2> [!id](glossing.json)
 

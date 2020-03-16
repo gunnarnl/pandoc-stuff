@@ -1,12 +1,12 @@
 # pandoc-templates
 
-My personal templates and lua filters for pandoc. The pride and joy here is panling.lua, which is a lua filter that converts markdown to latex gb4e syntax in a fairly intuitive way.
+My personal templates and lua filters for pandoc. The pride and joy here is lingpan.lua, which is a lua filter that converts intuitive markdown-like syntax to latex gb4e syntax.
 
-## panling.lua
+## lingpan.lua
 
 This will convert md-ish syntax into gb4e syntax for latex. It should now allow for multiple embedded examples. Inline math and other stylistic elements (md syntax or raw latex) (should) work as normal.
 
-Glosses also work mostly as normal. Begin a gloss by appending "=gll" to the label tag (e.g., <#example>=gll), and delimit lines with single line breaks.
+Glosses also work mostly as normal. Begin a gloss by inserting "g" before the "#" in the label tag (e.g., <g#example>), and delimit lines with single line breaks.
 
 The syntax for this:
 
@@ -25,7 +25,7 @@ The syntax for this:
     References to examples can be made with <&label>.
 
     Glossing is mostly familiar (notice that soft breaks can be used here to delineate data, gloss, and translation).
-    (@) <#gloss>=gll C'est un exemple.
+    (@) <g#gloss> C'est un exemple.
     \textsc{dem+cop} an example
     "This is an example."
 
