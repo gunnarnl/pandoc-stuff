@@ -15,7 +15,7 @@ This refers to <&label> below.
 
 And there can be paragraphs in between.
 
-(@) <#label2> This is a second example with math: $\exists x: \text{test}(x) \wedge \textsc{this}(x)$
+(@) <#label2> This is a second example with math: $\exists x: \text{test} (x) \wedge \text{this} (x)$
 
     With a second paragraph.
 
