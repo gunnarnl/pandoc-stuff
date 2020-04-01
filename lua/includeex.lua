@@ -2,8 +2,7 @@
 -- Actually outputs in native pandoc for now, where each part of the gloss is a span with the appropriate tag.
 -- Link syntax: [!identifier](file.json){attributes}
 
--- TO DO: error messages, parse linebreaks as linebreaks
--- Eventually: html.
+-- TODO: error messages?
 
 local lunajson = require 'lunajson'
 local List = require 'pandoc.List'
@@ -34,12 +33,6 @@ end
 
 function ILGlatex(sent, suppressText, suppressContext)
     local result = List:new()
-    --local sent = jsonsents:find_if(has_id(refID))
-    -- for i, item in pairs(jsonsents) do
-    --     if item.ref == refID then
-    --         sent = item
-    --     end
-    -- end
     local judgment = ""
     if sent.judgment ~= nil then
         judgment = sent.judgment
@@ -125,6 +118,7 @@ function num_gloss_pairs(morph, gloss)
     end
 end
 
+-- Creates rows that span whole table (for Context, translation, etc.)
 function html_row_ins(contents, colnum, type)
     result = List:new()
     result:insert(pandoc.RawInline('html', '<tr class='..type..'><td colspan='..colnum..'>'))
@@ -137,8 +131,12 @@ function html_row_ins(contents, colnum, type)
     return result
 end
 
+-- Creates rows with individual morphs/glosses as cells.
 function html_mgpairs_row_ins(judgment, items, type)
     result = List:new()
+    if type == 'gloss' then
+        judgment = ''
+    end 
     result:insert(pandoc.RawInline('html', '<tr class='..type..'><td class="judgment">'..judgment..'</td>'))
     for i, item in pairs(items) do
         result:insert(pandoc.RawInline('html', '<td class="'..type..'">'))
