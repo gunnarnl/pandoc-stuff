@@ -2,7 +2,7 @@
 -- Actually outputs in native pandoc for now, where each part of the gloss is a span with the appropriate tag.
 -- Link syntax: [!identifier](file.json){attributes}
 
--- TODO: error messages?
+-- TODO: error messages? Make all quotes single quotes.
 
 local lunajson = require 'lunajson'
 local List = require 'pandoc.List'
@@ -136,7 +136,7 @@ function html_mgpairs_row_ins(judgment, items, type)
     result = List:new()
     if type == 'gloss' then
         judgment = ''
-    end 
+    end
     result:insert(pandoc.RawInline('html', '<tr class='..type..'><td class="judgment">'..judgment..'</td>'))
     for i, item in pairs(items) do
         result:insert(pandoc.RawInline('html', '<td class="'..type..'">'))
@@ -147,6 +147,7 @@ function html_mgpairs_row_ins(judgment, items, type)
     return result
 end
 
+-- Helper function for splitting strings.
 function split(strin, sep)
     if sep == nil then
         sep = "%s"

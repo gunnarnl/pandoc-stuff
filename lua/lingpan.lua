@@ -1,108 +1,79 @@
--- Creates xlist syntax for subexamples; similar logic as in the main function below.
--- TODO: This whole thing should be rewritten...
-
--- Get gb4e ready glosses from the AST span syntax created from includeex.lua
+-- TODO: Make html glosses work
 
 local List = require 'pandoc.List'
 
--- NEW WAY TO DO THIS: CREATE A LIST AND THEN CONCATENATE
-function Span(element)
-    if element.classes[2] == "wilg" then
-        local tags = {}
-        -- Get tags and content
-        for k, span in pairs(element.content) do
-            tags[span.classes[2]] = span.content
-        end
-        --- Do the rest based on the output format ---
-        if FORMAT:match 'latex' then
-            return ILGlatex(element, tags)
-        elseif FORMAT:match 'html' then
-            return ILGhtml(element, tags)
-        else
-            print("lingpan.lua: Output format not supported")
-        end
-    end
-end
-
-function ILGlatex(element, tags)
-    -- NOTE: may need to concatenate morphs and glosses.
-    local result = List:new()
-    if pandoc.utils.stringify(tags['context']) ~= '' then
-        result:extend(tags['context'])
-        if pandoc.utils.stringify(tags['text']) ~= '' then
-            result:insert(pandoc.RawInline("latex","\\\\\n"))
-        end
-    end
-    if pandoc.utils.stringify(tags['text']) ~= '' then
-        result:extend(tags['judgment'])
-        result:extend(tags['text'])
-    end
-    result:insert(pandoc.RawInline("latex","\\gll "))
-    result:extend(tags['judgment'])
-    result:extend(tags['morph'])
-    result:insert(pandoc.RawInline("latex","\\\\\n"))
-    result:extend(tags['gloss'])
-    result:insert(pandoc.RawInline("latex","\\\\\n"))
-    result:insert(pandoc.RawInline("latex","\\trans "))
-    result:extend(tags['trans']:map(SwapBreaks))
-    -- Return a list of inlines.
-    return result
-end
-
-function SwapBreaks(li)
-    print("Hello!")
-    if li.t == "SoftBreak" then
-        return pandoc.RawInline('latex', '\\\\\n')
-    else
-        return li
-    end
-end
-
-function ILGhtml(element, tags)
-    -- FOR NOW: ILGs are going to have to be split apart here even though that's dumb. Concatenating should happen in the above code so deconcatenating doesn't have to happen here.
-
-    -- Get number of morphs
-    if #tags['morph'] ~= #tags['gloss'] then
-        print("ERROR: Number of morphs differs from number of glosses.")
-    else
-        lenM = #tags['morph']
-    end
-    local ilglist = {}
-    table.insert(ilglist, pandoc.RawInline('html', '<table>'))
-    if pandoc.utils.stringify(tags['context']) ~= '' then
-        table.insert(ilglist, tags['context'])
-        if pandoc.utils.stringify(tags['text']) ~= '' then
-            table.insert(ilgtexlist, pandoc.RawInline("latex","\\\\\n"))
-        end
-    end
-    if pandoc.utils.stringify(tags['text']) ~= '' then
-        table.insert(ilgtexlist, tags['judgment'])
-        table.insert(ilgtexlist, tags['text'])
-    end
-    table.insert(ilglist, pandoc.RawInline('html', '<tr>'))
-end
-
--- Replace OrderedLists with gb4e syntax.
+--- Main OrderedList function
 function OrderedList(element)
     if element.style == "Example" then
-        element = create_xlists(element) --inserts xlist syntax.
-        local exe = insert_ex(element) --inserts examples, returns list of inlines
-        table.insert(exe, 1, pandoc.RawBlock("latex", "\\begin{exe}"))
-        table.insert(exe, pandoc.RawBlock("latex", "\\end{exe}"))
-        return pandoc.Div(exe)
+        if FORMAT:match 'latex' then
+            return latex_rules(element) -- returns Div
+        elseif FORMAT:match 'html' then
+            return html_rules(element) -- returns OrderedList
+        end
     end
 end
 
+---------------------------
+--- Universal functions ---
+---------------------------
 -- Get labels and add glossing support when tag has g.
-function get_label(element)
+function get_label(li)
     local gloss = false
-    g, label = string.match(pandoc.utils.stringify(element), "^<(g?)#([%s%w%-:]+)>")
-    element[1].content[1] = pandoc.Str("") --remove label
-    -- element[1].content[1] = pandoc.Null() --remove label
+    g, label = string.match(pandoc.utils.stringify(li), "^<(g?)#([%s%w%-:]+)>")
+    li[1].content[1] = pandoc.Str("") --remove label
     if g == "g" then
         gloss = true
     end
-    return label, gloss, element
+    return label, gloss, li
+end
+
+----------------------
+--- Html functions ---
+----------------------
+-- Main function
+function html_rules(element)
+    startnum = element.start
+    element = html_sublists(element, num)
+    element = html_labels(element, startnum)
+    return element
+end
+
+-- Replace labels in sublists
+function html_sublists(element, num)
+    return pandoc.walk_block(element, {
+        OrderedList = function(ele)
+            if ele.style ~= "Example" then
+                return html_labels(ele, num)
+            end
+        end
+    })
+end
+
+-- Remove md labels and insert anchors.
+function html_labels(element, num)
+    result = List:new()
+    for j, li in pairs(element.content) do
+        local label, gloss, li = get_label(li)
+        li = insert_html_anchor(li, label, num)
+        result:insert(li)
+    end
+    element.content = result
+    return element
+end
+
+-- Inserts anchor in list item
+function insert_html_anchor(li, label, num)
+    table.insert(li[1].content, 1, pandoc.RawInline('html', '<a id='..label..'-label></a>'))
+    return li
+end
+
+-----------------------
+--- Latex functions ---
+-----------------------
+-- Main function
+function latex_rules(element)
+    element = create_xlists(element) -- inserts xlist tags
+    return ins_gb4e_span(element, 'exe')
 end
 
 --Inserts xlist syntax on embedded lists
@@ -110,16 +81,22 @@ function create_xlists(element)
     return pandoc.walk_block(element, {
         OrderedList = function(ele)
             if ele.style ~= "Example" then
-                local result = insert_ex(ele)
-                table.insert(result, 1, pandoc.RawBlock("latex", "\\begin{xlist}"))
-                table.insert(result, pandoc.RawBlock("latex", "\\end{xlist}"))
-                return pandoc.Div(result)
+                return ins_gb4e_span(ele, 'xlist')
             end
         end
     })
 end
 
+-- Inserts the relevant gb4e scope markers.
+function ins_gb4e_span(element, type)
+    local result = List:new(insert_ex(element))
+    result:insert(1, pandoc.RawBlock('latex', '\\begin{'..type..'}'))
+    result:insert(pandoc.RawBlock('latex', '\\end{'..type..'}'))
+    return pandoc.Div(result)
+end
+
 -- Takes list items and inserts \ex\label{}.
+-- I hate this function
 function insert_ex(element)
     local result = {}
     for _, li in pairs(element.content) do
@@ -140,14 +117,21 @@ function insert_ex(element)
     return result
 end
 
--- Replace <&labels> with latex /ref{}
+--------------------
+--- Ref function ---
+--------------------
+-- Replace <&labels>
 function Str(element)
     if string.match(element.text, "<%&([%s%w%-:]+)>") then
         local label, punc = string.match(element.text, "<%&([%s%w%-:]+)>(%p*)")
         if punc==nil then
             punc = ""
         end
-        return pandoc.RawInline("latex", "(\\ref{"..label.."})"..punc)
+        if FORMAT:match 'latex' then
+            return pandoc.RawInline("latex", "(\\ref{"..label.."})"..punc)
+        elseif FORMAT:match 'html' then
+            return pandoc.RawInline('html', '<a id='..label..'-ref href=#'..label..'-label>(here)</a>')
+        end
     else
         return element
     end
