@@ -35,8 +35,8 @@ Or with an inserted example (with includeex.lua). By default, the context will a
 
 With attributes suppressText=false and suppressContext=true:
 
-(@) <#gloss2> [!id](glossing.json){suppressText=false suppressContext=true}
+(@) <#gloss3> [!id](glossing.json){suppressText=false suppressContext=true}
 
 Notice also that examples with only text, gloss, and translation work as expected.
 
-(@) <#gloss3> [!id2](glossing.json)
+(@) <#gloss4> [!id2](glossing.json)

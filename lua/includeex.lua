@@ -6,6 +6,7 @@
 -- Eventually: html.
 
 local lunajson = require 'lunajson'
+local List = require 'pandoc.List'
 
 function Link(element)
     if string.match(pandoc.utils.stringify(element.content), "^!") then
@@ -20,48 +21,132 @@ function Link(element)
         end
         local fileCont = io.open(element.target, "r"):read("a")
         local jsonCont = lunajson.decode(fileCont)
-        local sents = jsonCont.sentences
-        local ilg = {}
-        for k, sent in pairs(sents) do
-            if sent.ref == refID then
-                local context = pandoc.Span(pandoc.Str(""), pandoc.Attr(sent.ref.."context", {'ilg', 'context'}))
-                local text = pandoc.Span(pandoc.Str(""), pandoc.Attr(sent.ref.."text", {'ilg', 'text'}))
-                local judgment = pandoc.Span(pandoc.Str(""), pandoc.Attr(sent.ref.."judgment", {'ilg', 'judgement'}))
-                if sent.context ~= nil and suppressContext==false then
-                    context = pandoc.Span(pandoc.Str(sent.context), pandoc.Attr(sent.ref.."context", {'ilg', 'context'}))
-                end
-                if suppressText==false then
-                    text = pandoc.Span(pandoc.Str(sent.text), pandoc.Attr(sent.ref.."text", {'ilg', 'text'}))
-                    morph = pandoc.Span(pandoc.Str(table.concat(sent.morph, " ")), pandoc.Attr(sent.ref.."morph", {'ilg', 'morph'}))
-                else
-                    if sent.morph ~= nil then
-                        morph = pandoc.Span(pandoc.Str(table.concat(sent.morph, " ")), pandoc.Attr(sent.ref.."morph", {'ilg', 'morph'}))
-                    else
-                        morph = pandoc.Span(pandoc.Str(sent.text), pandoc.Attr(sent.ref.."morph", {'ilg', 'morph'}))
-                    end
-                end
-                if sent.judgment ~= nil then
-                    judgment = pandoc.Span(pandoc.Str(sent.judgment), pandoc.Attr(sent.ref.."judgment", {'ilg', 'judgment'}))
-                end
-                gloss = pandoc.Span(pandoc.Str(table.concat(sent.gloss, " ")), pandoc.Attr(sent.ref.."gloss", {'ilg', 'gloss'}))
-                table.insert(ilg, context)
-                table.insert(ilg, judgment)
-                table.insert(ilg, text)
-                table.insert(ilg, morph)
-                table.insert(ilg, gloss)
-                local transStr = split(sent.trans, "\n")
-                local trans = {}
-                for k, string in pairs(transStr) do
-                    table.insert(trans, pandoc.Str(string))
-                    table.insert(trans, pandoc.SoftBreak())
-                end
-                transSpan = pandoc.Span(trans, pandoc.Attr(sent.ref.."trans", {'ilg', 'trans'}))
-                table.insert(ilg, transSpan)
-                ilg = pandoc.Span(ilg, pandoc.Attr(sent.ref.."ilg", {'ilg', 'wilg'}))
-            end
+        local sents = List:new(jsonCont.sentences)
+        local sent = sents:find_if(has_id(refID))
+        -- Output specific outputs:
+        if FORMAT:match 'latex' then
+            return ILGlatex(sent, suppressText, suppressContext)
+        elseif FORMAT:match 'html' then
+            return ILGhtml(sent, suppressText, suppressContext)
         end
-        return ilg
     end
+end
+
+function ILGlatex(sent, suppressText, suppressContext)
+    local result = List:new()
+    --local sent = jsonsents:find_if(has_id(refID))
+    -- for i, item in pairs(jsonsents) do
+    --     if item.ref == refID then
+    --         sent = item
+    --     end
+    -- end
+    local judgment = ""
+    if sent.judgment ~= nil then
+        judgment = sent.judgment
+    end
+    --Context level
+    if suppressContext==false and sent.context ~= nil then
+        result:insert(pandoc.Str(sent.context))
+    end
+    --Text level
+    if suppressText==false then
+        result:insert(pandoc.Str(judgment))
+        result:insert(pandoc.Str(sent.text))
+        judgment = "" -- reset judgment so it isn't doubled below
+    end
+    --Morphemic level
+    if sent.morph ~= nil then
+        result:insert(pandoc.RawInline("latex","\\gll "))
+        result:insert(pandoc.Str(judgment))
+        result:insert(pandoc.Str(table.concat(sent.morph, " ")))
+    else
+        result:insert(pandoc.RawInline("latex","\\gll "))
+        result:insert(pandoc.Str(judgment))
+        result:insert(pandoc.Str(sent.text))
+    end
+    result:insert(pandoc.RawInline("latex","\\\\\n"))
+    --Gloss level
+    result:insert(pandoc.Str(table.concat(sent.gloss, " ")))
+    result:insert(pandoc.RawInline("latex","\\\\\n"))
+    --Translation level
+    result:insert(pandoc.RawInline("latex","\\trans "))
+    for i, string in pairs(split(sent.trans, "\n")) do
+        result:insert(pandoc.Str(string))
+        result:insert(pandoc.RawInline("latex","\\\\\n"))
+    end
+    result:remove()
+    return result
+end
+
+function ILGhtml(sent, suppressText, suppressContext)
+    local result = List:new()
+    local morphs = List:new()
+    local glosses = List:new(sent.gloss)
+    local judgment = ""
+    if sent.judgment ~= nil then
+        judgment = sent.judgment
+    end
+    if sent.morph ~= nil then
+        morphs:extend(sent.morph)
+    else
+        morphs:extend(split(sent.text))
+    end
+    len = num_gloss_pairs(morphs, glosses)
+    result:insert(pandoc.RawInline('html', '<table class="ilg">'))
+    -- Context level
+    if suppressContext == false and sent.context ~= nil then
+        result:extend(html_row_ins(sent.context, len, 'context'))
+    end
+    -- Text level
+    if suppressText == false then
+        result:extend(html_row_ins(judgment..sent.text, len, 'text'))
+        judgment = ""
+    end
+    -- Morphemic level
+    result:extend(html_mgpairs_row_ins(judgment, morphs, "morph"))
+    -- Gloss level
+    result:extend(html_mgpairs_row_ins(judgment, glosses, "gloss"))
+    -- Translation level
+    result:extend(html_row_ins(sent.trans, len, 'trans'))
+    result:insert(pandoc.RawInline('html', '</table>'))
+    return result
+end
+
+function has_id (id)
+  return function(x) return x.ref == id end
+end
+
+function num_gloss_pairs(morph, gloss)
+    if #morph ~= #gloss then
+        print("!: Number of morphs differs from number of glosses.")
+        return 100
+    else
+        return #gloss
+    end
+end
+
+function html_row_ins(contents, colnum, type)
+    result = List:new()
+    result:insert(pandoc.RawInline('html', '<tr class='..type..'><td colspan='..colnum..'>'))
+    for i, string in pairs(split(contents, "\n")) do
+        result:insert(pandoc.Str(string))
+        result:insert(pandoc.RawInline('html', '<br>'))
+    end
+    result:remove()
+    result:insert(pandoc.RawInline('html', '</td></tr>'))
+    return result
+end
+
+function html_mgpairs_row_ins(judgment, items, type)
+    result = List:new()
+    result:insert(pandoc.RawInline('html', '<tr class='..type..'><td class="judgment">'..judgment..'</td>'))
+    for i, item in pairs(items) do
+        result:insert(pandoc.RawInline('html', '<td class="'..type..'">'))
+        result:insert(pandoc.Str(item))
+        result:insert(pandoc.RawInline('html', '</td>'))
+    end
+    result:insert(pandoc.RawInline('html', '</tr>'))
+    return result
 end
 
 function split(strin, sep)

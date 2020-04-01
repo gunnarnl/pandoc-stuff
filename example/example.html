@@ -1,33 +1,72 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Gunnar Lund" />
+  <title>Example</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  \usepackage[normalem]{ulem}
+  \usepackage{tipa}
+  \usepackage{stmaryrd}
+  \usepackage{bm}
+  \usepackage{tikz}
+  \usepackage{tikz-qtree}
+  \usepackage{gb4e}
+
+  \newcommand{\gnl}[1]{\textcolor{red}{[gnl: #1]}}
+  \newcommand{\sem}[2][]{\mbox{$\llbracket$\text{#2}$\rrbracket^{#1}$}}
+  \newcommand{\type}[1]{$\langle$\texttt{#1}$\rangle$}
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Example</h1>
+<p class="author">Gunnar Lund</p>
+<p class="date">3/16/20</p>
+</header>
 <h1 id="this-example-uses-the-handout-files">This example uses the handout files</h1>
 <p>This is a sentence.</p>
-<p>This refers to &lt;&amp;label&gt; below.</p>
+<p>This refers to  below.</p>
 <h2 id="this-is-also-a-header">This is also a header</h2>
-<ol class="example" type="1">
-<li>&lt;#label&gt; This is an <strong>example and it contains <em>emphasis</em>.</strong></li>
-</ol>
+<div>
+ This is an <strong>example and it contains <em>emphasis</em>.</strong>
+</div>
 <p>And there can be paragraphs in between.</p>
-<ol start="2" class="example" type="1">
-<li><p>&lt;#label2&gt; This is a second example with math: <span class="math inline">$\exists x: \text{test} (x) \wedge {\normalfont \textsc{this}} (x)$</span></p>
-<p>With a second paragraph.</p></li>
-<li>&lt;#label3&gt;
-<ol type="1">
-<li>&lt;#sublabel1&gt; This is a subexample.</li>
-<li>&lt;#sublabel2&gt; This is a second subexample with <span class="smallcaps">small caps</span> and <del>strikeout</del>.</li>
-</ol></li>
-</ol>
-<p>This refers to the sublabel in &lt;&amp;sublabel1&gt;. Glossing works as well, as in &lt;&amp;gloss&gt;.</p>
-<ol start="4" class="example" type="1">
-<li>&lt;g#gloss&gt; C’est un exemple.  an example “This is an example.”</li>
-</ol>
+<div>
+<p> This is a second example with math: <span class="math inline">∃<em>x</em> : test(<em>x</em>) ∧ this(<em>x</em>)</span></p>
+<p>With a second paragraph.</p>
+<p></p>
+<div>
+ This is a subexample.
+ This is a second subexample with <span class="smallcaps">small caps</span> and <del>strikeout</del>.
+</div>
+</div>
+<p>This refers to the sublabel in  Glossing works as well, as in </p>
+<div>
+ C’est un exemple. an example“This is an example.”
+</div>
 <p>Or with an inserted example (with includeex.lua). By default, the context will appear if present. If the gloss contains both a text and morphemic breakdown, the text won’t appear unless specified in the attributes. Also notice that “g” shouldn’t be appended to the example reference.</p>
-<ol start="5" class="example" type="1">
-<li>&lt;#gloss2&gt; <a href="glossing.json">!id</a></li>
-</ol>
+<div>
+ <table class="ilg"><tr class=context><td colspan=4>[Context or preamble]</td></tr><tr class=morph><td class="judgment"></td><td class="morph">vyanten</td><td class="morph">en=te</td><td class="morph">mw=i</td><td class="morph">abwilyep</td></tr><tr class=gloss><td class="judgment"></td><td class="gloss">person</td><td class="gloss">dem=dem.med</td><td class="gloss">mw=i</td><td class="gloss">abwilyep</td></tr><tr class=trans><td colspan=4>this man is a sorcerer</td></tr></table>
+</div>
 <p>With attributes suppressText=false and suppressContext=true:</p>
-<ol start="6" class="example" type="1">
-<li>&lt;#gloss2&gt; <a href="glossing.json" data-suppressText="false" data-suppressContext="true">!id</a></li>
-</ol>
+<div>
+ <table class="ilg"><tr class=text><td colspan=4>vyanten ente mwi abwilyep</td></tr><tr class=morph><td class="judgment"></td><td class="morph">vyanten</td><td class="morph">en=te</td><td class="morph">mw=i</td><td class="morph">abwilyep</td></tr><tr class=gloss><td class="judgment"></td><td class="gloss">person</td><td class="gloss">dem=dem.med</td><td class="gloss">mw=i</td><td class="gloss">abwilyep</td></tr><tr class=trans><td colspan=4>this man is a sorcerer</td></tr></table>
+</div>
 <p>Notice also that examples with only text, gloss, and translation work as expected.</p>
-<ol start="7" class="example" type="1">
-<li>&lt;#gloss3&gt; <a href="glossing.json">!id2</a></li>
-</ol>
+<div>
+ <table class="ilg"><tr class=morph><td class="judgment">??</td><td class="morph">A</td><td class="morph">more</td><td class="morph">minimal</td><td class="morph">example</td><td class="morph">is</td><td class="morph">here</td></tr><tr class=gloss><td class="judgment">??</td><td class="gloss">ART</td><td class="gloss">more</td><td class="gloss">minimal</td><td class="gloss">example</td><td class="gloss">COP</td><td class="gloss">here</td></tr><tr class=trans><td colspan=6>A more minimal example is here.<br>[With a line break in the free translation.]</td></tr></table>
+</div>
+</body>
+</html>
