@@ -1,4 +1,5 @@
 -- TODO: standardize single quotes
+-- NOTE: Gloss support in HTML may be buggy right now. Need to test it more.
 
 local List = require 'pandoc.List'
 
