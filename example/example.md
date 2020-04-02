@@ -26,7 +26,7 @@ And there can be paragraphs in between.
 This refers to the sublabel in <&sublabel1>. Glossing works as well, as in <&gloss>.
 
 (@) <g#gloss> C'est un exemple.
-\textsc{dem+cop} an example
+[dem.cop]{.smallcaps} an example
 "This is an example."
 
 Or with an inserted example (with includeex.lua). By default, the context will appear if present. If the gloss contains both a text and morphemic breakdown, the text won't appear unless specified in the attributes. Also notice that "g" shouldn't be appended to the example reference.

@@ -1,8 +1,10 @@
--- TODO: Make html glosses work
+-- TODO: standardize single quotes
 
 local List = require 'pandoc.List'
 
---- Main OrderedList function
+---------------------------------
+--- Main OrderedList function ---
+---------------------------------
 function OrderedList(element)
     if element.style == "Example" then
         if FORMAT:match 'latex' then
@@ -27,34 +29,41 @@ function get_label(li)
     return label, gloss, li
 end
 
-----------------------
---- Html functions ---
-----------------------
--- Main function
-function html_rules(element)
-    startnum = element.start
-    element = html_sublists(element, num)
-    element = html_labels(element, startnum)
-    return element
-end
-
--- Replace labels in sublists
-function html_sublists(element, num)
+-- Handles sublists.
+function sublists(element, num)
     return pandoc.walk_block(element, {
         OrderedList = function(ele)
             if ele.style ~= "Example" then
-                return html_labels(ele, num)
+                if FORMAT:match 'html' then
+                    return html_labels(ele, num)
+                elseif FORMAT:match 'latex' then
+                    return ins_gb4e_span(ele, 'xlist')
+                end
             end
         end
     })
 end
 
+----------------------
+--- Html functions ---
+----------------------
+-- Main function
+function html_rules(element)
+    local startnum = element.start
+    element = sublists(element, num)
+    element = html_labels(element, startnum)
+    return element
+end
+
 -- Remove md labels and insert anchors.
 function html_labels(element, num)
-    result = List:new()
+    local result = List:new()
     for j, li in pairs(element.content) do
         local label, gloss, li = get_label(li)
         li = insert_html_anchor(li, label, num)
+        if gloss == true then
+            li = html_gloss(li)
+        end
         result:insert(li)
     end
     element.content = result
@@ -67,24 +76,54 @@ function insert_html_anchor(li, label, num)
     return li
 end
 
+-- Glosses
+function html_gloss(li)
+    raw_inlines = List:new(li[1].content)
+    link, lind  = raw_inlines:find_if(function(x) return x.t=='RawInline' end)
+    raw_inlines:remove(lind) -- Remove link
+    raw_inlines:remove(lind) -- Remove blank Str
+    local result = List:new()
+    local counter = 1
+    local transPos = 0
+    local textinlines = List:new({'Str', 'SmallCaps', 'Emph', 'Strikeout', 'Strong', 'Quoted', 'RawInline', 'Math', 'Span', 'SoftBreak'}) --SoftBreak included as delimiter
+    result:insert(link)
+    result:insert(pandoc.RawInline('html', '<table class="ilg">'))
+    result:insert(pandoc.RawInline('html', '<tr>'))
+    for i, item in pairs(raw_inlines:filter(get_text_inlines(textinlines))) do
+        if item.t == "SoftBreak" then
+            --counter = counter + 1
+            if counter == 2 then
+                result:insert(pandoc.RawInline('html', '</tr><tr><td colspan=100 class="trans">'))
+            else
+                result:insert(pandoc.RawInline('html', '</tr><tr>'))
+            end
+            counter = counter + 1
+        elseif counter < 3 then
+            result:insert(pandoc.RawInline('html', '<td>'))
+            print (item.t)
+            result:insert(item)
+            result:insert(pandoc.RawInline('html', '</td>'))
+        elseif counter == 3 then
+            result:insert(item)
+        end
+    end
+    result:insert(pandoc.RawInline('html', '</td></tr></table>'))
+    li[1].content = result
+    return li
+end
+
+function get_text_inlines(textinlines)
+    return function(x) return textinlines:includes(x.t) end
+end
+
 -----------------------
 --- Latex functions ---
 -----------------------
 -- Main function
 function latex_rules(element)
-    element = create_xlists(element) -- inserts xlist tags
+    startnum = element.start -- Currently not used.
+    element = sublists(element, num) -- Inserts xlist tags.
     return ins_gb4e_span(element, 'exe')
-end
-
---Inserts xlist syntax on embedded lists
-function create_xlists(element)
-    return pandoc.walk_block(element, {
-        OrderedList = function(ele)
-            if ele.style ~= "Example" then
-                return ins_gb4e_span(ele, 'xlist')
-            end
-        end
-    })
 end
 
 -- Inserts the relevant gb4e scope markers.
