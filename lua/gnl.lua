@@ -11,8 +11,14 @@ end
 
 -- Insert LaTeX at header of references to enforce hanging indents.
 function Div(element)
-    if element.identifier == "refs" then
-        table.insert(element.content, 1, pandoc.RawBlock('latex','\\setlength{\\parindent}{-1.24cm}\\setlength{\\leftskip}{1.24cm}\\setlength{\\parskip}{8pt}\\noindent'))
+    if FORMAT:match 'latex' then
+        if element.identifier == "refs" then
+            table.insert(element.content, 1, pandoc.RawBlock('latex','\\setlength{\\parindent}{-1.24cm}\\setlength{\\leftskip}{1.24cm}\\setlength{\\parskip}{8pt}\\noindent'))
+        end
+        return element
+    elseif FORMAT:match 'html' then
+        return element --Not sure what to do here yet.
+    else
+        return element
     end
-    return element
 end
