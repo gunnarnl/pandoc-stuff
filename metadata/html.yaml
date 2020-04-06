@@ -1,0 +1,10 @@
+---
+author: "Gunnar Lund"
+bibliography: /home/gunnar/Projects/pandoc-templates/bibliography.bib
+csl: /home/gunnar/Projects/pandoc-templates/ussfl.csl
+reference-section-title: References
+
+indent: true
+numbersections: true
+linestretch: 1.5
+---

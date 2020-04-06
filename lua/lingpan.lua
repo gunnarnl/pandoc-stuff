@@ -101,7 +101,6 @@ function html_gloss(li)
             counter = counter + 1
         elseif counter < 3 then
             result:insert(pandoc.RawInline('html', '<td>'))
-            print (item.t)
             result:insert(item)
             result:insert(pandoc.RawInline('html', '</td>'))
         elseif counter == 3 then

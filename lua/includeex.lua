@@ -2,7 +2,7 @@
 -- Actually outputs in native pandoc for now, where each part of the gloss is a span with the appropriate tag.
 -- Link syntax: [!identifier](file.json){attributes}
 
--- TODO: error messages? Make all quotes single quotes.
+-- TODO: error messages? Make all quotes single quotes. Turn all caps in glosses into small caps.
 
 local lunajson = require 'lunajson'
 local List = require 'pandoc.List'

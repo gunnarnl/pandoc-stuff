@@ -49,4 +49,4 @@ done
 
 ifile=${1%.*}
 
-pandoc ~/Projects/pandoc-templates/templates/${oformat:-handout}.yaml $1 -o ${ofile:-$ifile}${otype:-pdf} -H ~/Projects/pandoc-templates/templates/${oformat:-handout}-header.tex --filter pandoc-citeproc --lua-filter ~/Projects/pandoc-templates/lua/includeex.lua --lua-filter ~/Projects/pandoc-templates/lua/lingpan.lua --lua-filter ~/Projects/pandoc-templates/lua/gnl.lua
+pandoc ~/Projects/pandoc-templates/metadata/${oformat:-handout}.yaml $1 -o ${ofile:-$ifile}.${otype:-pdf} --filter pandoc-citeproc --lua-filter ~/Projects/pandoc-templates/lua/includeex.lua --lua-filter ~/Projects/pandoc-templates/lua/lingpan.lua --lua-filter ~/Projects/pandoc-templates/lua/gnl.lua
