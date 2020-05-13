@@ -3,46 +3,54 @@
 -- Link syntax: [!identifier](file.json){attributes}
 
 -- TODO: error messages? Make all quotes single quotes. Turn all caps in glosses into small caps.
+-- TODO: Change suppressText and suppressContext to non-negative: text and context.
 
 local lunajson = require 'lunajson'
 local List = require 'pandoc.List'
 
 function Link(element)
     if string.match(pandoc.utils.stringify(element.content), "^!") then
-        local suppressText = true
-        local suppressContext = false
+        local text = false
+        local context = true
+        local notes = false
         local refID = string.match(pandoc.utils.stringify(element.content), "^!(.*)")
-        if element.attributes.suppressText=="false" then
-            suppressText = false
+        if element.attributes.text=="true" then
+            text = true
         end
-        if element.attributes.suppressContext=="true" then
-            suppressContext = true
+        if element.attributes.context=="false" then
+            context = false
         end
-        local fileCont = io.open(element.target, "r"):read("a")
+        if element.attributes.notes=="true" then
+            notes = true
+        end
+        local fileCont = assert(io.open(element.target, "r"):read("a"), 'ERROR: File '..element.target..' does not exist.')
         local jsonCont = lunajson.decode(fileCont)
         local sents = List:new(jsonCont.sentences)
         local sent = sents:find_if(has_id(refID))
+        if sent == nil then
+            print("ERROR: "..element.target.." has no item with refID "..refID..".")
+        end
         -- Output specific outputs:
         if FORMAT:match 'latex' then
-            return ILGlatex(sent, suppressText, suppressContext)
+            return ILGlatex(sent, text, context, notes)
         elseif FORMAT:match 'html' then
-            return ILGhtml(sent, suppressText, suppressContext)
+            return ILGhtml(sent, text, context, notes)
         end
     end
 end
 
-function ILGlatex(sent, suppressText, suppressContext)
+function ILGlatex(sent, text, context, notes)
     local result = List:new()
     local judgment = ""
     if sent.judgment ~= nil then
         judgment = sent.judgment
     end
     --Context level
-    if suppressContext==false and sent.context ~= nil then
+    if context==true and sent.context ~= nil then
         result:insert(pandoc.Str(sent.context))
     end
     --Text level
-    if suppressText==false then
+    if text==true then
         result:insert(pandoc.Str(judgment))
         result:insert(pandoc.Str(sent.text))
         judgment = "" -- reset judgment so it isn't doubled below
@@ -71,7 +79,7 @@ function ILGlatex(sent, suppressText, suppressContext)
     return result
 end
 
-function ILGhtml(sent, suppressText, suppressContext)
+function ILGhtml(sent, text, context, notes)
     local result = List:new()
     local morphs = List:new()
     local glosses = List:new(sent.gloss)
@@ -84,14 +92,14 @@ function ILGhtml(sent, suppressText, suppressContext)
     else
         morphs:extend(split(sent.text))
     end
-    len = num_gloss_pairs(morphs, glosses)
+    len = num_gloss_pairs(morphs, glosses) + 1 -- Accounts for judgment
     result:insert(pandoc.RawInline('html', '<table class="ilg">'))
     -- Context level
-    if suppressContext == false and sent.context ~= nil then
+    if context == true and sent.context ~= nil then
         result:extend(html_row_ins(sent.context, len, 'context'))
     end
     -- Text level
-    if suppressText == false then
+    if text == true then
         result:extend(html_row_ins(judgment..sent.text, len, 'text'))
         judgment = ""
     end
@@ -101,6 +109,9 @@ function ILGhtml(sent, suppressText, suppressContext)
     result:extend(html_mgpairs_row_ins(judgment, glosses, "gloss"))
     -- Translation level
     result:extend(html_row_ins(sent.trans, len, 'trans'))
+    if notes == true and sent.notes ~= nil then
+        result:extend(html_row_ins(sent.notes, len, 'notes'))
+    end
     result:insert(pandoc.RawInline('html', '</table>'))
     return result
 end

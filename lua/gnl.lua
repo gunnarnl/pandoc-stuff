@@ -2,9 +2,12 @@
 
 -- Puts my comments in the gnl tag.
 function Span(element)
-    if element.classes[1] == "gnl" then
+    if element.classes[1] == "gnl" and FORMAT:match 'latex' then
         table.insert(element.content, 1, pandoc.RawInline('latex', '\\gnl{'))
         table.insert(element.content, pandoc.RawInline('latex', '}'))
+    elseif element.classes[1] == "evfxn" then
+        table.insert(element.content, 1, pandoc.Str('⟦'))
+        table.insert(element.content, pandoc.Str('⟧'))
     end
     return element
 end
